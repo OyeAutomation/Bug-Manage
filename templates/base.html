@@ -1,0 +1,29 @@
+{% load static %}<!doctype html>
+<html lang="en" data-theme="{{ request.user.theme|default:'light' }}">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}QA Tracker{% endblock %}</title>
+<link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body>
+{% if user.is_authenticated %}
+<div class="layout">
+  <nav class="side" aria-label="Main">
+    <div class="brand">QA Tracker</div>
+    <a href="{% url 'dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}on{% endif %}">Projects</a>
+    {% if user.is_superuser %}<a href="{% url 'admin:index' %}">Admin panel</a>{% endif %}
+    <div class="spacer"></div>
+    <div class="who">{{ user.display_name }}<br><span style="opacity:.7">{{ user.get_role_display }}</span></div>
+    <form method="post" action="{% url 'toggle_theme' %}">{% csrf_token %}
+      <input type="hidden" name="next" value="{{ request.path }}">
+      <button class="btn small" style="width:100%">{% if user.theme == 'dark' %}Switch to light{% else %}Switch to dark{% endif %}</button>
+    </form>
+    <form method="post" action="{% url 'logout' %}" style="margin-top:6px">{% csrf_token %}<button class="btn small" style="width:100%">Log out</button></form>
+  </nav>
+  <main class="main">
+    {% for m in messages %}<div class="msg {{ m.tags }}">{{ m }}</div>{% endfor %}
+    {% block content %}{% endblock %}
+  </main>
+</div>
+{% else %}{% block anon %}{% endblock %}{% endif %}
+</body></html>

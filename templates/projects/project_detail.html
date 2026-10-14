@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+{% include 'projects/_tabs.html' with active='overview' %}
+<div class="row" style="justify-content:space-between"><div><h1>{{ project.name }}</h1><p class="sub">{{ project.description|default:"No description yet." }}</p></div>
+<div class="row">{% if user.can_manage_projects %}<a class="btn" href="{% url 'project_edit' project.pk %}">Edit project</a>{% endif %}</div></div>
+<div class="card kv" style="margin-bottom:18px"><h2>Team</h2>
+<div><b>Backend dev</b>{{ project.backend_dev.display_name|default:"Not assigned" }}</div><div><b>Frontend dev</b>{{ project.frontend_dev.display_name|default:"Not assigned" }}</div><div><b>BA</b>{{ project.ba.display_name|default:"Not assigned" }}</div>
+<a href="{% url 'project_team' project.pk %}" style="font-size:13px">View or change the team</a></div>
+<h2>Modules</h2>
+{% if user.can_edit_cases %}
+<form method="post" action="{% url 'module_add' project.pk %}" class="row card" style="margin-bottom:16px">{% csrf_token %}
+  <div style="flex:1;min-width:200px"><label for="m_name" style="margin-top:0">New module</label>{{ module_form.name }}</div>
+  <button class="btn primary" style="align-self:flex-end">Add module</button>
+</form>
+{% endif %}
+<div class="grid">
+{% for m in modules %}
+  <div class="card"><h2>{{ m.name }}</h2>
+    <div>{% for s in m.submodules.all %}{% if not s.archived %}<span class="chip">{{ s.name }}</span>{% endif %}{% empty %}<span class="sub">No sub-modules yet.</span>{% endfor %}</div>
+    {% if user.can_edit_cases %}
+    <form method="post" action="{% url 'submodule_add' project.pk m.pk %}" class="row" style="margin-top:12px">{% csrf_token %}
+      <input type="text" name="name" placeholder="New sub-module" aria-label="New sub-module for {{ m.name }}" style="flex:1">
+      <button class="btn small">Add</button>
+    </form>{% endif %}
+  </div>
+{% empty %}<div class="card">No modules yet. Add the first module above, for example Payments or Login.</div>{% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,6 @@
+<nav class="tabs" aria-label="Project sections">
+<a href="{% url 'project_detail' project.pk %}" class="{% if active == 'overview' %}on{% endif %}">Overview</a>
+<a href="{% url 'case_list' project.pk %}" class="{% if active == 'cases' %}on{% endif %}">Test cases</a>
+<a href="{% url 'run_list' project.pk %}" class="{% if active == 'runs' %}on{% endif %}">Test runs</a>
+<a href="{% url 'bug_list' project.pk %}" class="{% if active == 'bugs' %}on{% endif %}">Bugs</a>
+<a href="{% url 'project_team' project.pk %}" class="{% if active == 'team' %}on{% endif %}">Team</a></nav>

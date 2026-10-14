@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Import preview · {{ project.name }}{% endblock %}
+{% block content %}
+<h1>{% if batch.status == 'preview' %}Preview: {{ batch.filename }}{% else %}Imported: {{ batch.filename }}{% endif %}</h1>
+<p class="sub"><a href="{% url 'import_home' project.pk %}">Back to import</a></p>
+{% if batch.status == 'done' %}
+<div class="grid" style="margin-bottom:18px">
+  <div class="card"><h2>{{ batch.created_count }}</h2>added</div><div class="card"><h2>{{ batch.updated_count }}</h2>updated</div>
+  <div class="card"><h2>{{ batch.skipped_count }}</h2>skipped (already existed)</div><div class="card"><h2>{{ batch.rejected_count }}</h2>rejected</div>
+</div>
+{% else %}
+<div class="grid" style="margin-bottom:18px">
+  <div class="card"><h2>{{ n_new }}</h2>new, ready to import</div>
+  <div class="card"><h2>{{ n_dup }}</h2>already exist in this project</div>
+  <div class="card"><h2 style="color:var(--danger)">{{ n_bad }}</h2>have problems and will be left out</div>
+</div>
+<form method="post" action="{% url 'import_confirm' project.pk batch.pk %}" class="card" style="margin-bottom:18px">{% csrf_token %}
+  {% if n_dup %}<h2>Test cases that already exist</h2>
+  <div class="checks"><label><input type="radio" name="policy" value="skip" checked> Skip them (keep what is already saved)</label>
+  <label><input type="radio" name="policy" value="update"> Update their steps and expected result from the file</label></div>{% endif %}
+  <div class="row" style="margin-top:14px">
+    <button class="btn primary" {% if not n_new and not n_dup %}disabled{% endif %}>Import {{ n_new }}{% if n_dup %} new + handle {{ n_dup }} existing{% endif %}</button>
+    {% if n_bad %}<a class="btn" href="{% url 'import_errors' project.pk batch.pk %}">Download rejected rows</a>{% endif %}
+    <button class="btn" formaction="{% url 'import_cancel' project.pk batch.pk %}">Cancel</button>
+  </div>
+  {% if n_bad %}<p class="sub" style="margin:12px 0 0">Fix the rejected rows in the downloaded file, then upload it again. The ERROR column is ignored on upload.</p>{% endif %}
+</form>
+{% endif %}
+{% if batch.status == 'done' and batch.rejected_count %}<p><a class="btn" href="{% url 'import_errors' project.pk batch.pk %}">Download rejected rows</a></p>{% endif %}
+<div class="card" style="padding:0;overflow-x:auto"><table class="t">
+  <thead><tr><th>Row</th><th>Result</th><th>Module</th><th>Test case</th><th>Problem</th></tr></thead>
+  <tbody>{% for r in rows %}<tr><td>{{ r.n }}</td>
+    <td>{% if r.status == 'invalid' %}<span class="chip pri-high">Rejected</span>{% elif r.status == 'duplicate' %}<span class="chip">Exists</span>{% else %}<span class="chip">New</span>{% endif %}</td>
+    <td>{{ r.module }}{% if r.sub_module %} › {{ r.sub_module }}{% endif %}</td><td>{{ r.title }}</td>
+    <td style="color:var(--danger)">{{ r.errors|join:" " }}</td></tr>{% endfor %}</tbody></table></div>
+{% if hidden %}<p class="sub" style="margin-top:10px">Showing the first 300 rows (problems first). {{ hidden }} more rows are not shown here but are included in the import.</p>{% endif %}
+{% endblock %}

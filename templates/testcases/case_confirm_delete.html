@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Delete {{ case.code }}?</h1><p class="sub"><a href="{% url 'case_list' project.pk %}">Back to test cases</a></p>
+<div class="card" style="max-width:560px"><p style="margin-top:0"><b>{{ case.title }}</b><br><span class="sub">{{ case.module.name }}</span></p>
+{% if blocked %}<p>This test case already has results in test runs, so deleting it would erase run history. Archive it instead: it leaves the list and new runs, and the old results stay.</p>
+<a class="btn" href="{% url 'case_list' project.pk %}">OK</a>
+{% else %}<p>It has never been executed. It will be removed from the test cases list and from any open run where it is still waiting. This cannot be undone.</p>
+<form method="post" class="row">{% csrf_token %}<button class="btn primary" style="background:var(--danger);border-color:var(--danger);color:#fff">Delete test case</button><a class="btn" href="{% url 'case_list' project.pk %}">Cancel</a></form>{% endif %}</div>
+{% endblock %}

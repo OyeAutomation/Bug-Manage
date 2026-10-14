@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Test runs · {{ project.name }}{% endblock %}
+{% block content %}
+{% include 'projects/_tabs.html' with active='runs' %}
+<div class="row" style="justify-content:space-between"><div><h1>Test runs</h1><p class="sub"><a href="{% url 'project_detail' project.pk %}">{{ project.name }}</a></p></div>
+<div class="row"><a class="btn" href="{% url 'run_list_export' project.pk %}">Download summary CSV</a>{% if can_edit %}<a class="btn primary" href="{% url 'run_create' project.pk %}">New run</a>{% endif %}</div></div>
+<div class="card" style="padding:0;overflow-x:auto"><table class="t">
+<thead><tr><th>Run</th><th>Date</th><th>Version</th><th>QA</th><th>Progress</th><th>Pass</th><th>Fail</th><th>Blocked</th><th>Status</th></tr></thead>
+<tbody>{% for r, s in runs %}<tr><td><a href="{% url 'run_detail' project.pk r.pk %}">{{ r.name }}</a><br><span class="sub" style="margin:0;font-size:12px">{{ r.created_at|date:"d M Y" }} · {{ r.created_by.display_name|default:"" }}</span></td>
+<td>{{ r.run_date|date:"d M Y" }}</td><td>{{ r.build|default:"-" }}</td><td>{{ r.assigned_qa.display_name|default:"-" }}</td><td style="min-width:150px"><div class="bar-wrap"><div class="bar-fill" style="width:{{ s.percent }}%"></div></div><span style="font-size:12px">{{ s.done }} of {{ s.total }}</span></td>
+<td>{{ s.pass }}</td><td>{{ s.fail }}</td><td>{{ s.blocked }}</td><td><span class="chip">{{ r.get_status_display }}</span></td></tr>
+{% empty %}<tr><td colspan="9" style="padding:24px">No runs yet.{% if can_edit %} Create one to start executing test cases.{% endif %}</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

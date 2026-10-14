@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Log in · QA Tracker{% endblock %}
+{% block anon %}
+<div class="login card">
+  <h1>Log in</h1><p class="sub">Use the account your admin created for you.</p>
+  <form method="post">{% csrf_token %}
+    {{ form.non_field_errors }}
+    <label for="id_username">Username</label>{{ form.username }}
+    <label for="id_password">Password</label>{{ form.password }}
+    <button class="btn primary" style="margin-top:18px;width:100%;justify-content:center">Log in</button>
+  </form>
+</div>
+{% endblock %}

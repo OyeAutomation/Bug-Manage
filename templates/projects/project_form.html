@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>{{ title }}</h1><p class="sub">Members can see this project. Admins see every project.</p>
+<form method="post" class="card" style="max-width:560px">{% csrf_token %}
+  {{ form.non_field_errors }}
+  <label for="id_name">Name</label>{{ form.name }}{{ form.name.errors }}
+  <label for="id_description">Description</label>{{ form.description }}
+  <label>Members</label><div class="checks">{{ form.members }}</div>
+  <div class="row" style="margin-top:18px"><button class="btn primary">Save project</button><a class="btn" href="{% url 'dashboard' %}">Cancel</a></div>
+</form>
+{% endblock %}

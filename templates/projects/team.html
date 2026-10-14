@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Team · {{ project.name }}{% endblock %}
+{% block content %}
+{% include 'projects/_tabs.html' with active='team' %}
+<h1>Project team</h1>
+<p class="sub">Failed test cases are assigned to these developers by layer. When a developer marks a bug Fixed, their name is saved on that bug for good, even if the team changes later.</p>
+{% if can_edit %}
+<form method="post" class="card" style="max-width:560px">{% csrf_token %}{{ form.non_field_errors }}
+<label for="id_backend_dev">Backend developer</label>{{ form.backend_dev }}{{ form.backend_dev.errors }}
+<label for="id_frontend_dev">Frontend developer</label>{{ form.frontend_dev }}{{ form.frontend_dev.errors }}
+<label for="id_ba">Business analyst (BA)</label>{{ form.ba }}{{ form.ba.errors }}
+<p class="sub" style="margin:12px 0 0">Pick from users whose role is Developer (or BA for the BA). Whoever you pick is added to the project automatically.</p>
+{% if not dev_count %}<div class="warn" style="margin-top:12px">No active user has the role Developer yet. In the Admin panel, open Users, set Role to Developer for your developers, and come back. New users default to QA.</div>{% endif %}
+{% if not ba_count %}<div class="warn" style="margin-top:12px">No active user has the role Business analyst yet. Set it the same way in the Admin panel.</div>{% endif %}
+<button class="btn primary" style="margin-top:16px">Save team</button></form>
+{% else %}
+<div class="card kv" style="max-width:560px"><div><b>Backend dev</b>{{ project.backend_dev.display_name|default:"Not assigned" }}</div><div><b>Frontend dev</b>{{ project.frontend_dev.display_name|default:"Not assigned" }}</div><div><b>BA</b>{{ project.ba.display_name|default:"Not assigned" }}</div></div>
+{% endif %}
+<h2 style="margin-top:26px">Team history</h2>
+<div class="card" style="padding:0;overflow-x:auto"><table class="t"><thead><tr><th>When</th><th>Role</th><th>From</th><th>To</th><th>Changed by</th></tr></thead>
+<tbody>{% for c in changes %}<tr><td>{{ c.created_at|date:"d M Y H:i" }}</td><td>{{ c.get_role_display }}</td><td>{{ c.old_name|default:"(none)" }}</td><td>{{ c.new_name|default:"(none)" }}</td><td>{{ c.changed_by.display_name|default:"" }}</td></tr>
+{% empty %}<tr><td colspan="5" style="padding:20px">No changes yet.</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

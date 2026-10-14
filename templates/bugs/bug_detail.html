@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}{{ bug.code }} · {{ bug.title }}{% endblock %}
+{% block content %}
+{% include 'projects/_tabs.html' with active='bugs' %}
+<div class="row" style="justify-content:space-between"><div><div class="sub" style="margin:0"><a href="{% url 'bug_list' project.pk %}">Bugs</a> · {{ bug.code }}{% if bug.test_case %} · from {{ bug.test_case.code }}{% endif %}{% if bug.run %} in {{ bug.run.name }}{% endif %}</div>
+<h1 style="margin-top:4px">{{ bug.title }}</h1></div>{% if can_edit %}<a class="btn" href="{% url 'bug_edit' project.pk bug.pk %}">Edit</a>{% endif %}</div>
+<div class="flow" style="margin:6px 0 18px">{% for v,l in ordered %}<span class="chip {% if v == bug.status %}now{% endif %}">{{ l }}</span>{% endfor %}
+{% if bug.close_reason %}<span class="sub" style="margin-left:8px">Closed: {{ bug.get_close_reason_display }}</span>{% endif %}{% if bug.reopen_count %}<span class="sub" style="margin-left:8px">Reopened {{ bug.reopen_count }}×</span>{% endif %}</div>
+<div class="row" style="align-items:flex-start;gap:20px">
+<section style="flex:1;min-width:300px;display:flex;flex-direction:column;gap:16px">
+<div class="card"><h2>Steps to reproduce</h2><ol style="margin:0;padding-left:20px;line-height:1.7">{% for s in steps %}<li>{{ s }}</li>{% endfor %}</ol>
+<div class="two" style="margin-top:18px"><div><h2 style="color:var(--ok)">Expected</h2><div class="pre">{{ bug.expected_result }}</div></div><div><h2 style="color:var(--danger)">Actual</h2><div class="pre">{{ bug.actual_result }}</div></div></div></div>
+<div class="card"><h2>Comments</h2>{% for c in bug.comments.all %}<p style="margin:0 0 10px"><b>{{ c.author.display_name|default:"Someone" }}</b> <span class="sub" style="font-size:12px">{{ c.created_at|date:"d M H:i" }}</span><br><span class="pre">{{ c.text }}</span></p>{% empty %}<p class="sub">No comments yet.</p>{% endfor %}
+<form method="post" action="{% url 'bug_comment' project.pk bug.pk %}">{% csrf_token %}<label for="text">Add a comment</label><textarea id="text" name="text" rows="2"></textarea><button class="btn small" style="margin-top:8px">Comment</button></form></div></section>
+<aside style="width:330px;display:flex;flex-direction:column;gap:16px">
+<div class="card kv"><div><b>Module</b>{{ bug.module.name }}{% if bug.sub_module %} › {{ bug.sub_module.name }}{% endif %}</div><div><b>Developer type</b>{{ bug.get_layer_display }}</div><div><b>Severity</b>{{ bug.get_severity_display }}</div><div><b>Priority</b>{{ bug.get_priority_display }}</div>
+<div><b>Environment</b>{{ bug.environment|default:"-" }}</div><div><b>Build</b>{{ bug.build|default:"-" }}</div><div><b>Found</b>{{ bug.get_release_phase_display }}</div><div><b>Reported by</b>{{ bug.reporter.display_name|default:"-" }}</div><div><b>Raised</b>{{ bug.created_at|date:"d M Y H:i" }}</div>{% if fixed_by %}<div><b>Fixed by</b>{{ fixed_by }}</div>{% endif %}{% if bug.ba_name %}<div><b>Not required, BA</b>{{ bug.ba_name }}</div>{% endif %}</div>
+<div class="card"><h2>Developer type</h2><form method="post" action="{% url 'bug_layer' project.pk bug.pk %}" class="row">{% csrf_token %}
+<select name="layer" aria-label="Developer type" style="flex:1">{% for v,l in layers %}<option value="{{ v }}" {% if v == bug.layer %}selected{% endif %}>{{ l }}</option>{% endfor %}</select><button class="btn small">Save</button></form>
+<p class="sub" style="margin:8px 0 0;font-size:12px">Anyone on the project can change this. Unfixed bugs move to the matching developers.</p></div>
+<div class="card"><h2>Assigned to</h2><form method="post" action="{% url 'bug_assign' project.pk bug.pk %}">{% csrf_token %}
+<label for="as1" style="margin-top:0">Developer</label><select id="as1" name="assignee"><option value="">Unassigned</option>{% for u in members %}<option value="{{ u.pk }}" {% if u.pk == bug.assignee_id %}selected{% endif %}>{{ u.display_name }}</option>{% endfor %}</select>
+<label for="as2">Second developer (Frontend & Backend bugs)</label><select id="as2" name="co_assignee"><option value="">None</option>{% for u in members %}<option value="{{ u.pk }}" {% if u.pk == bug.co_assignee_id %}selected{% endif %}>{{ u.display_name }}</option>{% endfor %}</select>
+<button class="btn small" style="margin-top:10px">Save</button></form></div>
+{% if targets %}<div class="card"><h2>Change status</h2><form method="post" action="{% url 'bug_status' project.pk bug.pk %}">{% csrf_token %}<input type="hidden" name="seen_status" value="{{ bug.status }}">
+<div class="row">{% for v,l in targets %}<button class="btn small {% if v == 'closed' %}{% else %}primary{% endif %}" name="target" value="{{ v }}">{% if v == 'closed' %}Close{% else %}Mark {{ l }}{% endif %}</button>{% endfor %}{% for v,l in targets %}{% if v == 'closed' %}<button class="btn small" name="quick" value="not_required">Not required (BA)</button>{% endif %}{% endfor %}</div>
+{% for v,l in targets %}{% if v == 'closed' %}<label for="reason">Reason for closing{% if closes_without_fix %} (required, no fix yet){% endif %}</label>
+<select id="reason" name="reason">{% if closes_without_fix %}<option value="">Choose a reason…</option>{% for rv,rl in reasons %}<option value="{{ rv }}">{{ rl }}</option>{% endfor %}{% else %}<option value="fixed">Fixed</option>{% for rv,rl in reasons %}<option value="{{ rv }}">{{ rl }}</option>{% endfor %}{% endif %}</select>{% endif %}{% endfor %}</form></div>{% endif %}
+<div class="card"><h2>History</h2><div class="hist">{% for h in history %}<div>{{ h.created_at|date:"d M H:i" }} · {{ h.user.display_name|default:"?" }}: {% if h.field == 'created' %}raised the bug{% else %}{{ h.field_label }}: {{ h.old_value|default:"(empty)"|truncatechars:50 }} → {{ h.new_value|default:"(empty)"|truncatechars:50 }}{% endif %}</div>{% endfor %}</div></div>
+</aside></div>
+{% endblock %}

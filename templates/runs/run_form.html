@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>New test run</h1><p class="sub"><a href="{% url 'run_list' project.pk %}">Back to runs</a></p>
+<form method="post" class="card" style="max-width:560px">{% csrf_token %}{{ form.non_field_errors }}
+<label for="id_name">Run name</label>{{ form.name }}{{ form.name.errors }}
+<div class="row"><div style="flex:1"><label for="id_run_date">Date</label>{{ form.run_date }}{{ form.run_date.errors }}</div>
+<div style="flex:1"><label for="id_build">Version</label>{{ form.build }}{{ form.build.errors }}</div></div>
+<label for="id_assigned_qa">QA (tester)</label>{{ form.assigned_qa }}{{ form.assigned_qa.errors }}
+<label for="id_environment">Environment (optional)</label>{{ form.environment }}
+<p class="sub" style="margin:14px 0 0">All {{ case_count }} active test cases from the Test cases tab are added to the run automatically, and cases you add later appear in it too while it is open.</p>
+<div class="row" style="margin-top:18px"><button class="btn primary">Create run</button><a class="btn" href="{% url 'run_list' project.pk %}">Cancel</a></div></form>
+{% endblock %}

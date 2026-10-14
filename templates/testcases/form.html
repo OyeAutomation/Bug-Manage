@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>{{ title }}</h1><p class="sub"><a href="{% url 'case_list' project.pk %}">Back to test cases</a></p>
+<form method="post" class="card" style="max-width:720px">{% csrf_token %}
+  {{ form.non_field_errors }}
+  <div class="row" style="align-items:flex-start">
+    <div style="flex:1;min-width:200px"><label for="id_module">Module</label>{{ form.module }}{{ form.module.errors }}</div>
+    <div style="flex:1;min-width:200px"><label for="id_sub_module">Sub-module (optional)</label>{{ form.sub_module }}{{ form.sub_module.errors }}</div>
+  </div>
+  <label for="id_title">Test case</label>{{ form.title }}{{ form.title.errors }}
+  <label for="id_steps">Steps</label>{{ form.steps }}{{ form.steps.errors }}
+  <label for="id_expected_result">Expected result</label>{{ form.expected_result }}{{ form.expected_result.errors }}
+  <div class="row"><div style="flex:1"><label for="id_layer">Developer type</label>{{ form.layer }}</div>
+  <div style="flex:1"><label for="id_priority">Priority</label>{{ form.priority }}</div></div>
+  <div class="row" style="margin-top:18px"><button class="btn primary">Save test case</button><a class="btn" href="{% url 'case_list' project.pk %}">Cancel</a></div>
+</form>
+{{ submodule_map|json_script:"submodule-map" }}
+{% load static %}<script src="{% static 'js/testcases.js' %}"></script>
+<script>linkSubmodules('id_module','id_sub_module')</script>
+{% endblock %}

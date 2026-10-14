@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<h1>{{ title }}</h1>
+<p class="sub">{% if result %}From {{ result.test_case.code }} in run "{{ result.run.name }}". Details are filled in for you; add what actually happened.{% else %}<a href="{% url 'bug_list' project.pk %}">Back to bugs</a>{% endif %}</p>
+{% if similar %}<div class="warn">An open bug already exists for this test case: {% for b in similar %}<a href="{% url 'bug_detail' project.pk b.pk %}">{{ b.code }}</a> {% endfor %}. Check it before raising another.</div>{% endif %}
+<form method="post" class="card" style="max-width:760px">{% csrf_token %}{{ form.non_field_errors }}
+{% if result %}<input type="hidden" name="result" value="{{ result.pk }}">{% endif %}
+{% if version %}<input type="hidden" name="version" value="{{ version }}">{% endif %}
+<label for="id_title">Title</label>{{ form.title }}{{ form.title.errors }}
+<div class="row" style="align-items:flex-start"><div style="flex:1;min-width:200px"><label for="id_module">Module</label>{{ form.module }}{{ form.module.errors }}</div>
+<div style="flex:1;min-width:200px"><label for="id_sub_module">Sub-module</label>{{ form.sub_module }}{{ form.sub_module.errors }}</div></div>
+<label for="id_steps">Steps to reproduce</label>{{ form.steps }}{{ form.steps.errors }}
+<div class="two"><div><label for="id_expected_result">Expected result</label>{{ form.expected_result }}{{ form.expected_result.errors }}</div>
+<div><label for="id_actual_result">Actual result</label>{{ form.actual_result }}{{ form.actual_result.errors }}</div></div>
+<div class="row"><div style="flex:1"><label for="id_severity">Severity</label>{{ form.severity }}</div><div style="flex:1"><label for="id_priority">Priority</label>{{ form.priority }}</div><div style="flex:1"><label for="id_layer">Developer type</label>{{ form.layer }}</div></div>
+<div class="row"><div style="flex:1"><label for="id_environment">Environment</label>{{ form.environment }}</div><div style="flex:1"><label for="id_build">Build</label>{{ form.build }}</div><div style="flex:1"><label for="id_release_phase">Found</label>{{ form.release_phase }}</div></div>
+<label for="id_assignee">Assign to</label>{{ form.assignee }}
+<div class="row" style="margin-top:18px"><button class="btn primary">{% if bug %}Save changes{% else %}Raise bug{% endif %}</button>
+<a class="btn" href="{% if bug %}{% url 'bug_detail' project.pk bug.pk %}{% elif result %}{% url 'run_execute' project.pk result.run.pk result.pk %}{% else %}{% url 'bug_list' project.pk %}{% endif %}">Cancel</a></div></form>
+{{ submodule_map|json_script:"submodule-map" }}<script src="{% static 'js/testcases.js' %}"></script><script>linkSubmodules('id_module','id_sub_module')</script>
+{% endblock %}

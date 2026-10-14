@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row" style="justify-content:space-between"><div><h1>Projects</h1><p class="sub">Pick a project to work on its modules, test cases and bugs.</p></div>
+{% if user.can_manage_projects %}<a class="btn primary" href="{% url 'project_create' %}">New project</a>{% endif %}</div>
+<div class="grid">
+{% for p in projects %}
+  <a href="{% url 'project_detail' p.pk %}" class="card" style="text-decoration:none;color:inherit">
+    <h2>{{ p.name }}</h2><p class="sub" style="margin:0">{{ p.description|default:"No description yet."|truncatechars:90 }}</p>
+    <div style="margin-top:10px"><span class="chip">{{ p.modules.count }} modules</span><span class="chip">{{ p.members.count }} members</span></div>
+  </a>
+{% empty %}
+  <div class="card">You are not in any project yet.{% if user.can_manage_projects %} Create the first one with New project.{% else %} Ask an admin or manager to add you.{% endif %}</div>
+{% endfor %}
+</div>
+{% endblock %}

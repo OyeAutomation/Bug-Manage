@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}{{ run.name }}{% endblock %}
+{% block content %}
+{% include 'projects/_tabs.html' with active='runs' %}
+<div class="row" style="justify-content:space-between"><div><h1>{{ run.name }}</h1>
+<p class="sub"><a href="{% url 'run_list' project.pk %}">All runs</a> · {{ run.run_date|date:"d M Y" }} · Version {{ run.build|default:"-" }} · QA: {{ run.assigned_qa.display_name|default:"-" }}{% if run.environment %} · {{ run.environment }}{% endif %} · <span class="chip">{{ run.get_status_display }}</span></p></div>
+<form method="post" class="row">{% csrf_token %}<a class="btn" href="{% url 'run_export' project.pk run.pk %}{% if chosen %}?result={{ chosen }}{% endif %}">Download CSV</a>
+{% if run.status == 'open' and first_pending and can_edit %}<a class="btn primary" href="{% url 'run_execute' project.pk run.pk first_pending %}">{% if only_skipped %}Review skipped cases{% elif summary.done or summary.skip %}Continue executing{% else %}Start executing{% endif %}</a>{% endif %}
+{% if run.status == 'open' and can_edit %}<button class="btn" formaction="{% url 'run_close' project.pk run.pk %}">Close run</button>{% endif %}
+{% if run.status == 'closed' and can_reopen %}<button class="btn" formaction="{% url 'run_reopen' project.pk run.pk %}">Reopen run</button>{% endif %}</form></div>
+<div class="card" style="margin-bottom:16px"><div class="bar-wrap"><div class="bar-fill" style="width:{{ summary.percent }}%"></div></div>
+<p style="margin:10px 0 0;font-size:14px">{{ summary.done }} of {{ summary.total }} executed · <b>{{ summary.pass }}</b> pass · <b style="color:var(--danger)">{{ summary.fail }}</b> fail · {{ summary.blocked }} blocked · {{ summary.skip }} skipped (moved to the end) · {{ summary.not_run }} not run</p></div>
+<div class="row" style="margin-bottom:10px;font-size:14px"><a href="?">All</a>{% for v,l in choices %}<a href="?result={{ v }}" {% if chosen == v %}style="font-weight:600"{% endif %}>{{ l }}</a>{% endfor %}</div>
+<div class="card" style="padding:0;overflow-x:auto"><table class="t"><thead><tr><th>ID</th><th>Test case</th><th>Module</th><th>Result</th><th>Bugs</th><th>Tester</th><th></th></tr></thead>
+<tbody>{% for r in results %}<tr><td>{{ r.test_case.code }}</td><td>{{ r.test_case.title }}</td><td>{{ r.test_case.module.name }}</td>
+<td><span class="chip res-{{ r.result }}">{{ r.get_result_display }}</span></td>
+<td>{% for b in r.linked %}<a href="{% url 'bug_detail' project.pk b.pk %}">{{ b.code }}</a> {% empty %}{% if r.result == 'fail' %}<span class="sub" style="margin:0">no bug yet</span>{% endif %}{% endfor %}</td>
+<td>{{ r.tester.display_name|default:"" }}</td><td><a href="{% url 'run_execute' project.pk run.pk r.pk %}">Open</a></td></tr>
+{% empty %}<tr><td colspan="7" style="padding:20px">Nothing here.</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

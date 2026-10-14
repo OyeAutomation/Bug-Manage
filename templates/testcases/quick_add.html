@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Quick add · {{ project.name }}{% endblock %}
+{% block content %}
+<h1>Quick add test cases</h1>
+<p class="sub"><a href="{% url 'case_list' project.pk %}">Back to test cases</a> · Type in the grid, or copy rows from Excel and paste into any cell. New modules and sub-modules are created automatically. If any row has a problem, nothing is saved.</p>
+<form method="post">{% csrf_token %}
+<div class="card gridwrap"><table class="t" id="grid">
+  <thead><tr><th>Module</th><th>Sub-module</th><th>Test case</th><th>Steps</th><th>Expected result</th><th>Layer</th><th>Priority</th></tr></thead>
+  <tbody>{% for r in rows %}
+    <tr class="gridrow {% if r.errs %}bad{% endif %}">
+      <td><input type="text" name="module" list="mods" value="{{ r.module|default:'' }}" aria-label="Module"></td>
+      <td><input type="text" name="sub_module" list="subs" value="{{ r.sub_module|default:'' }}" aria-label="Sub-module"></td>
+      <td><input type="text" name="title" value="{{ r.title|default:'' }}" aria-label="Test case"></td>
+      <td><textarea name="steps" rows="2" aria-label="Steps">{{ r.steps|default:'' }}</textarea></td>
+      <td><textarea name="expected_result" rows="2" aria-label="Expected result">{{ r.expected_result|default:'' }}</textarea></td>
+      <td><select name="layer" aria-label="Layer">{% for v,l in layers %}<option value="{{ l }}" {% if r.layer|lower == v or r.layer|lower == l|lower %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></td>
+      <td><select name="priority" aria-label="Priority">{% for v,l in priorities %}<option value="{{ l }}" {% if r.priority|lower == v or not r.priority and v == 'medium' %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></td>
+    </tr>
+    {% if r.errs %}<tr><td colspan="7" style="color:var(--danger);font-size:13px">Row {{ forloop.counter }}: {{ r.errs|join:" " }}</td></tr>{% endif %}
+  {% endfor %}</tbody></table></div>
+<datalist id="mods">{% for m in modules %}<option value="{{ m.name }}">{% endfor %}</datalist>
+<datalist id="subs">{% for s in submodules %}<option value="{{ s.name }}">{% endfor %}</datalist>
+<div class="row" style="margin-top:14px"><button type="button" class="btn" id="addrow">Add row</button><button class="btn primary">Save all</button></div>
+</form>
+<script src="{% static 'js/testcases.js' %}"></script><script>initGrid()</script>
+{% endblock %}
